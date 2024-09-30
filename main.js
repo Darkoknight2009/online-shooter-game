@@ -1,65 +1,55 @@
-const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 0 },
-            debug: false
-        }
-    },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    }
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const player = {
+    x: canvas.width / 2 - 25,
+    y: canvas.height - 60,
+    width: 50,
+    height: 50,
+    color: 'blue',
+    speed: 5
 };
 
-const game = new Phaser.Game(config);
+const bullets = [];
+const bulletSpeed = 10;
 
-let player;
-let cursors;
-let bullets;
-let lastFired = 0;
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowLeft':
+            player.x -= player.speed;
+            break;
+        case 'ArrowRight':
+            player.x += player.speed;
+            break;
+        case ' ':
+            bullets.push({ x: player.x + 20, y: player.y, width: 10, height: 10 });
+            break;
+    }
+});
 
-function preload() {
-    this.load.image('player', 'assets/player.png');  // Player image
-    this.load.image('bullet', 'assets/bullet.png');  // Bullet image
+function drawPlayer() {
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
 }
 
-function create() {
-    player = this.physics.add.sprite(400, 300, 'player').setCollideWorldBounds(true);
-    bullets = this.physics.add.group({
-        defaultKey: 'bullet',
-        maxSize: 10
-    });
-    cursors = this.input.keyboard.createCursorKeys();
-}
+function drawBullets() {
+    ctx.fillStyle = 'red';
+    bullets.forEach((bullet, index) => {
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        bullet.y -= bulletSpeed; // Move bullet upwards
 
-function update(time) {
-    player.setVelocity(0);
-
-    if (cursors.left.isDown) {
-        player.setVelocityX(-200);
-    } else if (cursors.right.isDown) {
-        player.setVelocityX(200);
-    }
-
-    if (cursors.up.isDown) {
-        player.setVelocityY(-200);
-    } else if (cursors.down.isDown) {
-        player.setVelocityY(200);
-    }
-
-    if (cursors.space.isDown && time > lastFired) {
-        let bullet = bullets.get(player.x, player.y);
-
-        if (bullet) {
-            bullet.setActive(true);
-            bullet.setVisible(true);
-            bullet.setVelocityY(-300);
-            lastFired = time + 500;
+        // Remove bullet if it goes off-screen
+        if (bullet.y < 0) {
+            bullets.splice(index, 1);
         }
-    }
+    });
 }
+
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPlayer();
+    drawBullets();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
