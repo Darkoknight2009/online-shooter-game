@@ -7,7 +7,8 @@ const player = {
     width: 50,
     height: 50,
     color: 'blue',
-    speed: 5
+    speed: 5,
+    health: 100 // Player health
 };
 
 const bullets = [];
@@ -15,6 +16,14 @@ const bulletSpeed = 10;
 const enemies = [];
 const enemySpeed = 2;
 let score = 0;
+
+// Load sounds
+const shootSound = new Audio('assets/shoot.mp3');
+const hitSound = new Audio('assets/hit.mp3');
+const backgroundMusic = new Audio('assets/background.mp3');
+
+backgroundMusic.loop = true; // Loop the background music
+backgroundMusic.play(); // Play background music
 
 // Spawn enemies
 function spawnEnemies() {
@@ -33,12 +42,15 @@ document.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'ArrowLeft':
             player.x -= player.speed;
+            if (player.x < 0) player.x = 0; // Prevent going off-screen
             break;
         case 'ArrowRight':
             player.x += player.speed;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width; // Prevent going off-screen
             break;
         case ' ':
             bullets.push({ x: player.x + 20, y: player.y, width: 10, height: 10 });
+            shootSound.play(); // Play shooting sound
             break;
     }
 });
@@ -70,6 +82,12 @@ function drawEnemies() {
         ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
         enemy.y += enemySpeed; // Move enemy down
 
+        // Check if enemy reaches the bottom
+        if (enemy.y > canvas.height) {
+            player.health -= 10; // Decrease health
+            enemies.splice(enemyIndex, 1); // Remove enemy
+        }
+
         // Check for collision with bullets
         bullets.forEach((bullet, bulletIndex) => {
             if (
@@ -78,17 +96,12 @@ function drawEnemies() {
                 bullet.y < enemy.y + enemy.height &&
                 bullet.y + bullet.height > enemy.y
             ) {
-                // Remove bullet and enemy on collision
-                bullets.splice(bulletIndex, 1);
-                enemies.splice(enemyIndex, 1);
+                bullets.splice(bulletIndex, 1); // Remove bullet
+                enemies.splice(enemyIndex, 1); // Remove enemy
                 score += 10; // Increase score
+                hitSound.play(); // Play hit sound
             }
         });
-
-        // Remove enemy if it goes off-screen
-        if (enemy.y > canvas.height) {
-            enemies.splice(enemyIndex, 1);
-        }
     });
 }
 
@@ -99,6 +112,13 @@ function drawScore() {
     ctx.fillText(`Score: ${score}`, 10, 20);
 }
 
+// Draw health
+function drawHealth() {
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Health: ${player.health}`, canvas.width - 120, 20);
+}
+
 // Game loop
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -106,6 +126,14 @@ function gameLoop() {
     drawBullets();
     drawEnemies();
     drawScore();
+    drawHealth();
+
+    // Check for game over
+    if (player.health <= 0) {
+        alert('Game Over! Your score: ' + score);
+        document.location.reload(); // Reload the page to restart the game
+    }
+
     requestAnimationFrame(gameLoop);
 }
 
