@@ -18,9 +18,9 @@ const enemySpeed = 2;
 let score = 0;
 
 // Load sounds
-const shootSound = new Audio('assets/shoot.mp3');
-const hitSound = new Audio('assets/hit.mp3');
-const backgroundMusic = new Audio('assets/background.mp3');
+const shootSound = new Audio('assets/retro-laser-1-236669.mp3'); // Shooting sound
+const hitSound = new Audio('assets/male_hurt7-48124.mp3'); // Hit sound
+const backgroundMusic = new Audio('assets/8-bit-background-music-for-arcade-game-come-on-mario-164702.mp3'); // Background music
 
 backgroundMusic.loop = true; // Loop the background music
 backgroundMusic.play(); // Play background music
